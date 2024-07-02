@@ -1,6 +1,34 @@
 const { readFileSync } = require('fs');
 
 function gerarFaturaStr(fatura, pecas) {
+  // função query
+  function getPeca(apresentacao) {
+      return pecas[apresentacao.id];
+  }
+
+  // função extraída
+  function calcularTotalApresentacao(apre) {
+    let total = 0;
+    switch (getPeca(apre).tipo) {
+      case "tragedia":
+        total = 40000;
+        if (apre.audiencia > 30) {
+          total += 1000 * (apre.audiencia - 30);
+        }
+        break;
+      case "comedia":
+        total = 30000;
+        if (apre.audiencia > 20) {
+          total += 10000 + 500 * (apre.audiencia - 20);
+        }
+        total += 300 * apre.audiencia;
+        break;
+      default:
+        throw new Error(`Peça desconhecia: ${getPeca(apre).tipo}`);
+    }
+    return total;
+  }
+
   let totalFatura = 0;
   let creditos = 0;
   let faturaStr = `Fatura ${fatura.cliente}\n`;
@@ -12,29 +40,7 @@ function gerarFaturaStr(fatura, pecas) {
 
 
   for (let apre of fatura.apresentacoes) {
-    function calcularTotalApresentacao(apre, peca) {
-      let total = 0;
-      switch (peca.tipo) {
-        case "tragedia":
-          total = 40000;
-          if (apre.audiencia > 30) {
-            total += 1000 * (apre.audiencia - 30);
-          }
-          break;
-        case "comedia":
-          total = 30000;
-          if (apre.audiencia > 20) {
-            total += 10000 + 500 * (apre.audiencia - 20);
-          }
-          total += 300 * apre.audiencia;
-          break;
-        default:
-          throw new Error(`Peça desconhecia: ${peca.tipo}`);
-      }
-      return total;
-    }
-
-    const peca = pecas[apre.id];
+    const peca = getPeca(apre);
     let total = calcularTotalApresentacao(apre, peca);
 
     // créditos para próximas contratações
